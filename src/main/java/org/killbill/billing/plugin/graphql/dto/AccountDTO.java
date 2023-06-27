@@ -1,6 +1,4 @@
 /*
- * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2020 Groupon, Inc
  * Copyright 2020-2023 Equinix, Inc
  * Copyright 2014-2023 The Billing Project, LLC
  *
@@ -17,19 +15,27 @@
  * under the License.
  */
 
-package org.killbill.billing.plugin.graphql;
+package org.killbill.billing.plugin.graphql.dto;
 
-import java.util.Map;
+import java.util.Collection;
 
-import javax.annotation.Nullable;
+import org.killbill.billing.account.api.Account;
+import org.killbill.billing.account.api.boilerplate.AccountImp;
+import org.killbill.billing.entitlement.api.SubscriptionBundle;
 
-import org.killbill.billing.osgi.api.Healthcheck;
-import org.killbill.billing.tenant.api.Tenant;
+public class AccountDTO extends AccountImp {
 
-public class GraphQLHealthcheck implements Healthcheck {
+    public Collection<SubscriptionBundle> bundles;
 
-    @Override
-    public HealthStatus getHealthStatus(@Nullable final Tenant tenant, @Nullable final Map properties) {
-        return HealthStatus.healthy();
+    public AccountDTO(final Account account) {
+        super(new AccountImp.Builder<>().source(account).build());
+    }
+
+    public Collection<SubscriptionBundle> getBundles() {
+        return bundles;
+    }
+
+    public void setBundles(final Collection<SubscriptionBundle> bundles) {
+        this.bundles = bundles;
     }
 }

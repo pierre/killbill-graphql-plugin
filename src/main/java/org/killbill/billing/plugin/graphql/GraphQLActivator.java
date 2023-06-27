@@ -1,6 +1,4 @@
 /*
- * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2020 Groupon, Inc
  * Copyright 2020-2023 Equinix, Inc
  * Copyright 2014-2023 The Billing Project, LLC
  *
@@ -19,7 +17,12 @@
 
 package org.killbill.billing.plugin.graphql;
 
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.Hashtable;
+import java.util.Objects;
 import java.util.Properties;
 
 import javax.servlet.Servlet;
@@ -28,13 +31,24 @@ import javax.servlet.http.HttpServlet;
 import org.killbill.billing.osgi.api.Healthcheck;
 import org.killbill.billing.osgi.api.OSGIPluginProperties;
 import org.killbill.billing.osgi.libs.killbill.KillbillActivatorBase;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher;
-import org.killbill.billing.osgi.libs.killbill.OSGIKillbillEventDispatcher.OSGIFrameworkEventHandler;
 import org.killbill.billing.plugin.api.notification.PluginConfigurationEventHandler;
 import org.killbill.billing.plugin.core.config.PluginEnvironmentConfig;
 import org.killbill.billing.plugin.core.resources.jooby.PluginApp;
 import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
+import org.killbill.billing.plugin.graphql.http.GraphQLHealthcheckServlet;
+import org.killbill.billing.plugin.graphql.http.GraphQLServlet;
+import org.killbill.billing.plugin.graphql.services.GraphQLHealthcheck;
+import org.killbill.billing.plugin.graphql.services.KillBillDataFetcher;
 import org.osgi.framework.BundleContext;
+
+import graphql.GraphQL;
+import graphql.schema.GraphQLSchema;
+import graphql.schema.idl.RuntimeWiring;
+import graphql.schema.idl.SchemaGenerator;
+import graphql.schema.idl.SchemaParser;
+import graphql.schema.idl.TypeDefinitionRegistry;
+
+import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
 public class GraphQLActivator extends KillbillActivatorBase {
 
@@ -48,36 +62,41 @@ public class GraphQLActivator extends KillbillActivatorBase {
 
         final String region = PluginEnvironmentConfig.getRegion(configProperties.getProperties());
 
-        // Register an event listener for plugin configuration (optional)
+        // Register an event listener for plugin configuration
         graphQLConfigurationHandler = new GraphQLConfigurationHandler(region, PLUGIN_NAME, killbillAPI);
-        final Properties globalConfiguration = graphQLConfigurationHandler
-                .createConfigurable(configProperties.getProperties());
+        final Properties globalConfiguration = graphQLConfigurationHandler.createConfigurable(configProperties.getProperties());
         graphQLConfigurationHandler.setDefaultConfigurable(globalConfiguration);
 
-        // Expose a healthcheck, so other plugins can check on the plugin status
+        // Expose a healthcheck
         final Healthcheck healthcheck = new GraphQLHealthcheck();
         registerHealthcheck(context, healthcheck);
 
-        // Register a servlet
+        // Create the GraphQL environment
+        final InputStream stream = getClass().getClassLoader().getResourceAsStream("schema/schema.graphqls");
+        final Reader streamReader = new InputStreamReader(Objects.requireNonNull(stream), Charset.defaultCharset());
+        final TypeDefinitionRegistry typeDefinitionRegistry = new SchemaParser().parse(streamReader);
+        final RuntimeWiring runtimeWiring = newRuntimeWiring()
+                .type("Query", builder -> builder.dataFetcher("account", new KillBillDataFetcher(killbillAPI)))
+                .build();
+        final SchemaGenerator schemaGenerator = new SchemaGenerator();
+        final GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
+        final GraphQL graphQL = GraphQL.newGraphQL(graphQLSchema).build();
+
+        // Register the servlets
         final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME, killbillAPI, dataSource, super.clock,
                                                          configProperties).withRouteClass(GraphQLServlet.class)
-                                                                          .withRouteClass(GraphQLHealthcheckServlet.class).withService(healthcheck).build();
+                                                                          .withRouteClass(GraphQLHealthcheckServlet.class)
+                                                                          .withService(healthcheck)
+                                                                          .withService(graphQL)
+                                                                          .build();
         final HttpServlet httpServlet = PluginApp.createServlet(pluginApp);
         registerServlet(context, httpServlet);
 
         registerHandlers();
     }
 
-    @Override
-    public void stop(final BundleContext context) throws Exception {
-        // Do additional work on shutdown (optional)
-        super.stop(context);
-    }
-
     private void registerHandlers() {
-        final PluginConfigurationEventHandler configHandler = new PluginConfigurationEventHandler(
-                graphQLConfigurationHandler);
-
+        final PluginConfigurationEventHandler configHandler = new PluginConfigurationEventHandler(graphQLConfigurationHandler);
         dispatcher.registerEventHandlers(configHandler);
     }
 

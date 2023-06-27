@@ -1,0 +1,207 @@
+type Query {
+    account(idFilter: String): Account
+}
+
+type Account {
+    address1: String
+    address2: String
+    billCycleDayLocal: Int
+    bundles: [Bundle]
+    city: String
+    companyName: String
+    country: String
+    createdDate: String
+    currency: String
+    email: String
+    externalKey: String
+    firstNameLength: Int
+    fixedOffsetTimeZone: String
+    id: String
+    isMigrated: Boolean
+    isPaymentDelegatedToParent: Boolean
+    locale: String
+    name: String
+    notes: String
+    parentAccountId: String
+    paymentMethodId: String
+    phone: String
+    postalCode: String
+    referenceTime: String
+    stateOrProvince: String
+    timeZone: String
+    updatedDate: String
+}
+
+type Bundle {
+    accountId: String
+    createdDate: String
+    externalKey: String
+    id: String
+    originalCreatedDate: String
+    subscriptions: [Subscription]
+    timeline: BundleTimeline
+    updatedDate: String
+}
+
+type BundleTimeline {
+    accountId: String
+    bundleId: String
+    externalKey: String
+    subscriptionEvents: [SubscriptionEvent]
+}
+
+type SubscriptionEvent {
+    effectiveDate: String
+    entitlementId: String
+    id: String
+    isBlockedBilling: Boolean
+    isBlockedEntitlement: Boolean
+    nextBillingPeriod: String
+    nextPhase: PlanPhase
+    nextPlan: Plan
+    nextPriceList: PriceList
+    nextProduct: Product
+    prevBillingPeriod: String
+    prevPhase: PlanPhase
+    prevPlan: Plan
+    prevPriceList: PriceList
+    prevProduct: Product
+    serviceName: String
+    serviceStateName: String
+    subscriptionEventType: String
+}
+
+type PlanPhase {
+    duration: Duration
+    fixed: Fixed
+    name: String
+    phaseType: String
+    prettyName: String
+    recurring: Recurring
+    usages: [Usage]
+}
+
+type Fixed {
+    price: InternationalPrice
+    type: String
+}
+
+type Recurring {
+    billingPeriod: String
+    recurringPrice: InternationalPrice
+}
+
+type InternationalPrice {
+    isZero: Boolean
+    prices: [Price]
+}
+
+type Price {
+    currency: String
+    value: String
+}
+
+type Duration {
+    number: Int
+    unit: String
+}
+
+type Usage {
+    billingMode: String
+    billingPeriod: String
+    blocks: [Block]
+    fixedPrice: InternationalPrice
+    limits: [Limit]
+    name: String
+    prettyName: String
+    recurringPrice: InternationalPrice
+    tierBlockPolicy: String
+    tiers: [Tier]
+    usageType: String
+}
+
+type Block {
+    minTopUpCredit: String
+    price: InternationalPrice
+    size: String
+    type: String
+    unit: String
+}
+
+type Limit {
+    max: String
+    min: String
+    Unit: String
+}
+
+type Tier {
+    fixedPrice: InternationalPrice
+    limits: [Limit]
+    recurringPrice: InternationalPrice
+    tieredBlocks: [TieredBlock]
+}
+
+type TieredBlock {
+    max: String
+    minTopUpCredit: String
+    price: InternationalPrice
+    size: String
+    type: String
+    unit: String
+}
+
+type Plan {
+    allPhases: [PlanPhase]
+    effectiveDateForExistingSubscriptions: String
+    finalPhase: PlanPhase
+    initialPhases: [PlanPhase]
+    name: String
+    plansAllowedInBundle: Int
+    prettyName: String
+    priceList: PriceList
+    product: Product
+    recurringBillingMode: String
+    recurringBillingPeriod: String
+}
+
+type PriceList {
+    name: String
+    plans: [Plan]
+    prettyName: String
+}
+
+type Product {
+    available: [Product]
+    catalogName: String
+    category: String
+    included: [Product]
+    limits: [Limit]
+    name: String
+    prettyName: String
+}
+
+type Subscription {
+    accountId: String
+    baseEntitlementId: String
+    billCycleDayLocal: Int
+    billingEndDate: String
+    billingStartDate: String
+    bundleExternalKey: String
+    bundleId: String
+    chargedThroughDate: String
+    createdDate: String
+    effectiveEndDate: String
+    effectiveStartDate: String
+    externalKey: String
+    id: String
+    lastActivePhase: PlanPhase
+    lastActivePlan: Plan
+    lastActivePriceList: PriceList
+    lastActiveProduct: Product
+    lastActiveProductCategory: String
+    sourceType: String
+    state: String
+    subscriptionEvents: [SubscriptionEvent]
+    updatedDate: String
+    quantity: Int
+}

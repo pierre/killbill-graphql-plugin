@@ -1,6 +1,4 @@
 /*
- * Copyright 2010-2014 Ning, Inc.
- * Copyright 2014-2020 Groupon, Inc
  * Copyright 2020-2023 Equinix, Inc
  * Copyright 2014-2023 The Billing Project, LLC
  *
@@ -17,7 +15,7 @@
  * under the License.
  */
 
-package org.killbill.billing.plugin.graphql;
+package org.killbill.billing.plugin.graphql.http;
 
 import java.util.Optional;
 
@@ -29,6 +27,7 @@ import org.jooby.mvc.GET;
 import org.jooby.mvc.Local;
 import org.jooby.mvc.Path;
 import org.killbill.billing.plugin.core.resources.PluginHealthcheck;
+import org.killbill.billing.plugin.graphql.services.GraphQLHealthcheck;
 import org.killbill.billing.tenant.api.Tenant;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
