@@ -44,14 +44,19 @@ public class KillBillDataFetcher implements DataFetcher<AccountDTO> {
     public AccountDTO get(final DataFetchingEnvironment env) throws Exception {
         // See magic in GraphQLServlet
         final Tenant tenant = env.getGraphQlContext().get("killbill_tenant");
-        // As defined in the GraphQL schema
-        final UUID accountId = UUID.fromString(env.getArgument("idFilter"));
-        final TenantContext context = new TenantContextImp.Builder<>().withTenantId(tenant.getId())
-                                                                      .withAccountId(accountId)
-                                                                      .build();
+        final TenantContext context = new TenantContextImp.Builder<>().withTenantId(tenant.getId()).build();
 
-        final Account account = killbillAPI.getAccountUserApi()
-                                           .getAccountById(accountId, context);
+        // As defined in the GraphQL schema
+        final String idFilter = env.getArgument("idFilter");
+        final String keyFilter = env.getArgument("keyFilter");
+
+        final Account account;
+        if (idFilter != null) {
+            final UUID accountId = UUID.fromString(idFilter);
+            account = killbillAPI.getAccountUserApi().getAccountById(accountId, context);
+        } else {
+            account = killbillAPI.getAccountUserApi().getAccountByKey(keyFilter, context);
+        }
         final AccountDTO accountDTO = new AccountDTO(account);
 
         final DataFetchingFieldSelectionSet selectionSet = env.getSelectionSet();

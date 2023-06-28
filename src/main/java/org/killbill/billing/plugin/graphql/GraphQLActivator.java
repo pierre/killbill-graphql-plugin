@@ -17,12 +17,7 @@
 
 package org.killbill.billing.plugin.graphql;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.Charset;
 import java.util.Hashtable;
-import java.util.Objects;
 import java.util.Properties;
 
 import javax.servlet.Servlet;
@@ -38,17 +33,9 @@ import org.killbill.billing.plugin.core.resources.jooby.PluginAppBuilder;
 import org.killbill.billing.plugin.graphql.http.GraphQLHealthcheckServlet;
 import org.killbill.billing.plugin.graphql.http.GraphQLServlet;
 import org.killbill.billing.plugin.graphql.services.GraphQLHealthcheck;
-import org.killbill.billing.plugin.graphql.services.KillBillDataFetcher;
 import org.osgi.framework.BundleContext;
 
 import graphql.GraphQL;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.idl.RuntimeWiring;
-import graphql.schema.idl.SchemaGenerator;
-import graphql.schema.idl.SchemaParser;
-import graphql.schema.idl.TypeDefinitionRegistry;
-
-import static graphql.schema.idl.RuntimeWiring.newRuntimeWiring;
 
 public class GraphQLActivator extends KillbillActivatorBase {
 
@@ -72,15 +59,7 @@ public class GraphQLActivator extends KillbillActivatorBase {
         registerHealthcheck(context, healthcheck);
 
         // Create the GraphQL environment
-        final InputStream stream = getClass().getClassLoader().getResourceAsStream("schema/schema.graphqls");
-        final Reader streamReader = new InputStreamReader(Objects.requireNonNull(stream), Charset.defaultCharset());
-        final TypeDefinitionRegistry typeDefinitionRegistry = new SchemaParser().parse(streamReader);
-        final RuntimeWiring runtimeWiring = newRuntimeWiring()
-                .type("Query", builder -> builder.dataFetcher("account", new KillBillDataFetcher(killbillAPI)))
-                .build();
-        final SchemaGenerator schemaGenerator = new SchemaGenerator();
-        final GraphQLSchema graphQLSchema = schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring);
-        final GraphQL graphQL = GraphQL.newGraphQL(graphQLSchema).build();
+        final GraphQL graphQL = GraphQLSetup.create(killbillAPI);
 
         // Register the servlets
         final PluginApp pluginApp = new PluginAppBuilder(PLUGIN_NAME, killbillAPI, dataSource, super.clock,

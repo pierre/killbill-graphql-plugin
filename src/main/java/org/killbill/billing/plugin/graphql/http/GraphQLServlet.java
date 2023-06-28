@@ -92,5 +92,7 @@ public class GraphQLServlet {
 
         public String query;
         public String operationName;
+        public String variables;
+        public String extensions;
     }
 }

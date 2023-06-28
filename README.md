@@ -68,6 +68,10 @@ Note: in the headers section (bottom), make sure to enter your tenant details:
 }
 ```
 
+## Development
+
+In IntelliJ, make sure to enable the Federation setting in `Languages & Frameworks > GraphQL` (see https://github.com/JetBrains/js-graphql-intellij-plugin/issues/297).
+
 ## About
 
 Kill Bill is the leading Open-Source Subscription Billing & Payments Platform. For more information about the project, go to https://killbill.io/.

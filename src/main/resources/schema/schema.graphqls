@@ -1,5 +1,6 @@
 type Query {
     account(idFilter: String): Account
+    accountByKey(keyFilter: String): Account
 }
 
 type Account {
