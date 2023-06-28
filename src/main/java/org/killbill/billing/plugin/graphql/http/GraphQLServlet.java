@@ -41,6 +41,7 @@ import org.killbill.billing.tenant.api.Tenant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import graphql.ExecutionInput;
 import graphql.ExecutionInput.Builder;
 import graphql.ExecutionResult;
@@ -79,7 +80,7 @@ public class GraphQLServlet {
     public Result graphql(@Local @Named("killbill_tenant") final Optional<Tenant> tenant,
                           @Body final GraphQLRequest request) {
         final Builder builder = ExecutionInput.newExecutionInput();
-        tenant.ifPresent(value -> builder.graphQLContext(Map.of("killbill_tenant", value)));
+        tenant.ifPresent(value -> builder.graphQLContext(ImmutableMap.of("killbill_tenant", value)));
 
         final ExecutionInput executionInput = builder.query(request.query).build();
         final ExecutionResult executionResult = graphQL.execute(executionInput);
